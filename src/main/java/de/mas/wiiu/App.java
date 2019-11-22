@@ -8,10 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Hello world!
- *
- */
 public class App {
 
     static String[] templatePrefixes = new String[] { "tm", "ps", "pt" /* XXX from libiberty cplus-dem.c */ };
@@ -23,34 +19,27 @@ public class App {
 
     public static void main(String[] args) {
         init();
-        
-        
-        demangle("__sti___17_RZApplication_cpp_8fdb2739");
-     
+
+
         BufferedReader reader;
         try {
-            reader = new BufferedReader(new FileReader("functions.txt"));
+            reader = new BufferedReader(new FileReader(args[0]));
             String line = reader.readLine();
             while (line != null) {
                 String newStr = line;
                 try {
                     newStr = demangle(line);
-                    
-                       // System.out.println(newStr);
-                    
+                    System.out.println(newStr);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    
-                    System.out.println(newStr);
-                }               
-                // read next line
+                    System.out.println(line);
+                }
                 line = reader.readLine();
             }
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private static void init() {
@@ -128,7 +117,7 @@ public class App {
     }
 
     private static String demangle(String name) {
-        if(name.startsWith("__sti__")) {
+        if (name.startsWith("__sti__")) {
             return name;
         }
         name = Decompress(name);
@@ -201,7 +190,7 @@ public class App {
                 e.printStackTrace();
             }
         }
-        
+
         if (mangle.getValue().length() > 0)
             throw new IllegalArgumentException("Unknown modifier: \"" + mangle.getValue().charAt(0) + "\".");
 
@@ -232,9 +221,8 @@ public class App {
                 if (end == -1) throw new IllegalArgumentException("Unexpected end of string. Expected \"Z\".");
 
                 current = remainder.getValue().substring(0, end);
-                remainder.setValue(name.substring(end + 1));
+                remainder.setValue(name.substring(end + 2));
             } else {
-
                 current = ReadString(remainder.getValue(), remainder);
             }
 
@@ -333,7 +321,7 @@ public class App {
             if (name.length() < 2) throw new IllegalArgumentException("Unexpected end of string. Expected \"_\".");
             if (!Character.isDigit(name.charAt(1))) throw new IllegalArgumentException("Unexpected character \"" + name.charAt(1) + "\". Expected a digit.");
 
-            int arg = Integer.parseInt(name.substring(1, 2));            
+            int arg = Integer.parseInt(name.substring(1, 2));
 
             remainder.setValue(name.substring(2));
 
@@ -415,7 +403,11 @@ public class App {
         name = name.substring(0, mstart);
 
         while (true) {
-            if (!StartsWithAny(remainder, templatePrefixes)) throw new IllegalArgumentException("Unexpected template argument prefix.");
+            if (!StartsWithAny(remainder, templatePrefixes)) {
+                // throw new IllegalArgumentException("Unexpected template argument prefix. " + remainder);
+                return name;
+
+            }
 
             /* format of remainder should be <type>__<len>_<arg> */
             int lstart = remainder.indexOf("__");
@@ -569,7 +561,7 @@ public class App {
                             break;
                         }
 
-                    if (end > start) valid = false;
+                    if (end < start) valid = false;
 
                     if (valid) {
 
